@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎰 بينغو</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 480px;
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin: 0;
+            background: linear-gradient(45deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .balance {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 20px;
+            border-radius: 30px;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .balance span { color: #ffd700; font-weight: bold; }
+        .cartela-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 15px 0;
+        }
+        .cartela-wrapper {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .cartela-title {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 6px;
+        }
+        .cartela {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+        }
+        .cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.06);
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        .cell.label {
+            background: rgba(255,215,0,0.15);
+            font-size: 11px;
+            color: #ffd700;
+        }
+        .cell.free {
+            background: #ffd700;
+            color: #000;
+            font-size: 16px;
+        }
+        .cell.marked {
+            background: #00e676;
+            color: #000;
+            transform: scale(0.92);
+            box-shadow: 0 0 20px rgba(0,230,118,0.3);
+        }
+        .cell.bingo {
+            background: #ff1744;
+            color: #fff;
+            animation: pulse 0.5s infinite;
+            box-shadow: 0 0 30px rgba(255,23,68,0.5);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .drawn-area {
+            margin: 15px 0;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .drawn-title {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .drawn-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 40px;
+            justify-content: center;
+        }
+        .ball {
+            background: linear-gradient(145deg, #ff6b6b, #c0392b);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.3);
+            animation: bounceIn 0.4s;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0) rotate(180deg); }
+            70% { transform: scale(1.2) rotate(-10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .status {
+            text-align: center;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 12px 0;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .status.waiting { background: rgba(255,167,38,0.2); color: #ffa726; }
+        .status.playing { background: rgba(66,165,245,0.2); color: #42a5f5; }
+        .status.bingo { background: rgba(102,187,106,0.3); color: #66bb6a; animation: pulse 0.5s infinite; }
+        .status.error { background: rgba(255,23,68,0.2); color: #ff1744; }
+        .btn {
+            background: linear-gradient(45deg, #f7971e, #ffd200);
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #000;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(247,151,30,0.3);
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn:disabled {
+            opacity: 0.4;
+            transform: none;
+            box-shadow: none;
+        }
+        .info {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+        }
+        .btn-reset {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .btn-reset:active { opacity: 0.5; }
+        @media (max-width: 400px) {
+            .cell { font-size: 11px; }
+            .ball { width: 28px; height: 28px; font-size: 11px; }
+            .container { padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎰 بينغو</h1>
+            <div class="balance">💰 <span id="balance">0</span> ETB</div>
+        </div>
+
+        <div class="cartela-container">
+            <div class="cartela-wrapper">
+                <div class="cartela-title">📋 كارتيلا #1</div>
+                <div id="cartela1" class="cartela"></div>
+            </div>
+            <div class="cartela-wrapper">
+                <div class="cartela-title">📋 كارتيلا #2</div>
+                <div id="cartela2" class="cartela"></div>
+            </div>
+        </div>
+
+        <div class="drawn-area">
+            <div class="drawn-title">
+                <span>🎱 الكرات المسحوبة</span>
+                <span id="ballCount">0</span>
+            </div>
+            <div class="drawn-numbers" id="drawnNumbers"></div>
+        </div>
+
+        <div class="info">
+            <span>🏆 الجولة: <span id="roundNumber">0</span></span>
+            <span>⏱️ <span id="timer">00:00</span></span>
+        </div>
+
+        <div class="status waiting" id="status">⏳ جاهز للعب!</div>
+
+        <button class="btn" id="playBtn" onclick="startGame()">🎯 بدء اللعبة (10 ETB)</button>
+        <button class="btn-reset" onclick="resetGame()">🔄 إعادة تعيين</button>
+    </div>
+
+    <script>
+        let balance = 100;
+        let cartelas = [];
+        let drawnNumbers = [];
+        let roundNumber = 0;
+        let gameRunning = false;
+        let timerInterval = null;
+        let seconds = 0;
+
+        function generateCartela() {
+            const ranges = {
+                'B': Array.from({length: 15}, (_, i) => i + 1),
+                'I': Array.from({length: 15}, (_, i) => i + 16),
+                'N': Array.from({length: 15}, (_, i) => i + 31),
+                'G': Array.from({length: 15}, (_, i) => i + 46),
+                'O': Array.from({length: 15}, (_, i) => i + 61)
+            };
+            
+            let cartela = [];
+            for (let col in ranges) {
+                let numbers = [...ranges[col]];
+                let selected = [];
+                for (let i = 0; i < 5; i++) {
+                    let idx = Math.floor(Math.random() * numbers.length);
+                    selected.push(numbers[idx]);
+                    numbers.splice(idx, 1);
+                }
+                cartela.push(selected);
+            }
+            
+            let rows = [];
+            for (let i = 0; i < 5; i++) {
+                rows.push(cartela.map(col => col[i]));
+            }
+            rows[2][2] = 'FREE';
+            return rows;
+        }
+
+        function renderCartela(cartela, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            const labels = ['B', 'I', 'N', 'G', 'O'];
+            labels.forEach(label => {
+                let div = document.createElement('div');
+                div.className = 'cell label';
+                div.textContent = label;
+                container.appendChild(div);
+            });
+            
+            for (let row of cartela) {
+                for (let num of row) {
+                    let div = document.createElement('div');
+                    div.className = 'cell';
+                    if (num === 'FREE') {
+                        div.className = 'cell free';
+                        div.textContent = '⭐';
+                    } else if (drawnNumbers.includes(num)) {
+                        div.className = 'cell marked';
+                        div.textContent = num;
+                    } else {
+                        div.textContent = num;
+                    }
+                    container.appendChild(div);
+                }
+            }
+        }
+
+        function renderDrawnNumbers() {
+            const container = document.getElementById('drawnNumbers');
+            container.innerHTML = '';
+            drawnNumbers.slice(-20).forEach(num => {
+                let ball = document.createElement('div');
+                ball.className = 'ball';
+                ball.textContent = num;
+                container.appendChild(ball);
+            });
+            document.getElementById('ballCount').textContent = drawnNumbers.length;
+        }
+
+        function checkBingo(cartela) {
+            for (let row of cartela) {
+                if (row.every(n => n === 'FREE' || drawnNumbers.includes(n))) {
+                    return true;
+                }
+            }
+            
+            for (let col = 0; col < 5; col++) {
+                if (cartela.every(row => row[col] === 'FREE' || drawnNumbers.includes(row[col]))) {
+                    return true;
+                }
+            }
+            
+            if (cartela.every((row, i) => row[i] === 'FREE' || drawnNumbers.includes(row[i]))) return true;
+            if (cartela.every((row, i) => row[4-i] === 'FREE' || drawnNumbers.includes(row[4-i]))) return true;
+            
+            return false;
+        }
+
+        function startTimer() {
+            seconds = 0;
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                seconds++;
+                let mins = String(Math.floor(seconds / 60)).padStart(2, '0');
+                let secs = String(seconds % 60).padStart(2, '0');
+                document.getElementById('timer').textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function startGame() {
+            if (gameRunning) return;
+            if (balance < 10) {
+                setStatus('❌ رصيد غير كافٍ!', 'error');
+                return;
+            }
+            
+            balance -= 10;
+            updateBalance();
+            drawnNumbers = [];
+            roundNumber++;
+            document.getElementById('roundNumber').textContent = roundNumber;
+            gameRunning = true;
+            document.getElementById('playBtn').disabled = true;
+            setStatus('🎯 جاري سحب الكرات...', 'playing');
+            startTimer();
+            
+            cartelas = [generateCartela(), generateCartela()];
+            renderCartela(cartelas[0], 'cartela1');
+            renderCartela(cartelas[1], 'cartela2');
+            renderDrawnNumbers();
+            
+            drawBalls();
+        }
+
+        function drawBalls() {
+            let available = Array.from({length: 75}, (_, i) => i + 1)
+                .filter(n => !drawnNumbers.includes(n));
+            
+            if (available.length === 0 || !gameRunning) {
+                endGame('😔 انتهت الجولة! لم يفز أحد', 'waiting');
+                return;
+            }
+            
+            let ball = available[Math.floor(Math.random() * available.length)];
+            drawnNumbers.push(ball);
+            renderDrawnNumbers();
+            
+            renderCartela(cartelas[0], 'cartela1');
+            renderCartela(cartelas[1], 'cartela2');
+            
+            for (let i = 0; i < cartelas.length; i++) {
+                if (checkBingo(cartelas[i])) {
+                    let prize = Math.floor(10 * 0.8);
+                    balance += prize;
+                    updateBalance();
+                    setStatus(`🎉 بنغو! ربحت ${prize} ETB!`, 'bingo');
+                    gameRunning = false;
+                    document.getElementById('playBtn').disabled = false;
+                    stopTimer();
+                    
+                    let container = document.getElementById(i === 0 ? 'cartela1' : 'cartela2');
+                    container.querySelectorAll('.cell.marked').forEach(el => {
+                        if (el.textContent !== 'FREE') {
+                            el.className = 'cell bingo';
+                        }
+                    });
+                    
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        window.Telegram.WebApp.sendData(JSON.stringify({
+                            type: 'bingo',
+                            message: `🎉 بنغو! ربحت ${prize} ETB!`
+                        }));
+                    }
+                    return;
+                }
+            }
+            
+            setTimeout(drawBalls, 1500);
+        }
+
+        function endGame(message, statusType) {
+            gameRunning = false;
+            document.getElementById('playBtn').disabled = false;
+            stopTimer();
+            setStatus(message, statusType);
+        }
+
+        function resetGame() {
+            gameRunning = false;
+            document.getElementById('playBtn').disabled = false;
+            stopTimer();
+            drawnNumbers = [];
+            roundNumber = 0;
+            document.getElementById('roundNumber').textContent = '0';
+            document.getElementById('timer').textContent = '00:00';
+            cartelas = [generateCartela(), generateCartela()];
+            renderCartela(cartelas[0], 'cartela1');
+            renderCartela(cartelas[1], 'cartela2');
+            renderDrawnNumbers();
+            setStatus('🔄 تم إعادة التعيين!', 'waiting');
+            balance = 100;
+            updateBalance();
+        }
+
+        function updateBalance() {
+            document.getElementById('balance').textContent = balance;
+        }
+
+        function setStatus(text, type) {
+            const el = document.getElementById('status');
+            el.textContent = text;
+            el.className = `status ${type}`;
+        }
+
+        function init() {
+            cartelas = [generateCartela(), generateCartela()];
+            renderCartela(cartelas[0], 'cartela1');
+            renderCartela(cartelas[1], 'cartela2');
+            renderDrawnNumbers();
+            updateBalance();
+            setStatus('✅ جاهز للعب!', 'waiting');
+            
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
+
