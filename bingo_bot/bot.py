@@ -15,7 +15,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton(
             "🎰 افتح لعبة البنغو",
-            web_app=WebAppInfo(url="https://abdusiraj609-a1ly.github.io/bingo-mini-app/")
+            web_app=WebAppInfo(url="https://abdusiraj609-a11y.github.io/bingo-mini-app/")
         )]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
