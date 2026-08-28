@@ -2,12 +2,24 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppI
 from telegram.ext import Application, CommandHandler, ContextTypes
 import json
 import os
+import threading
+from flask import Flask
 
 TOKEN = os.environ.get("TOKEN")
 if not TOKEN:
     raise RuntimeError("TOKEN environment variable is not set")
 
 users = {}
+
+web = Flask(__name__)
+
+@web.get("/")
+def health():
+    return "Beherawi Bingo Bot is running", 200
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    web.run(host="0.0.0.0", port=port)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -37,6 +49,8 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"💰 رصيدك: {balance} ETB")
 
 def main():
+    threading.Thread(target=run_web, daemon=True).start()
+
     app = Application.builder().token(TOKEN).build()
     
     app.add_handler(CommandHandler("start", start))
