@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width,
+                 initial-scale=1.0,
+                 maximum-scale=1.0,
+                 user-scalable=no,
+                 viewport-fit=cover"
+    >
+
+    <meta name="theme-color" content="#120208">
+
+    <title>Beherawi Bingo</title>
+
+    <!-- Telegram Mini App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="app">
+
+    <!-- =========================================================
+         APPLICATION HEADER
+         ========================================================= -->
+    <header id="appHeader" class="app-header">
+
+        <div class="brand-area">
+            <div class="brand-icon">♛</div>
+
+            <div class="brand-text">
+                <div class="brand-title">
+                    BEHERAWI BINGO
+                </div>
+
+                <div class="round-label">
+                    ROUND <span id="roundNumber">#18766</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="header-stats">
+
+            <div class="header-stat">
+                <span class="stat-label">CALLED</span>
+                <strong id="calledCount">0/75</strong>
+            </div>
+
+            <div class="header-stat">
+                <span class="stat-label">BALANCE</span>
+                <strong id="balance">0.00</strong>
+            </div>
+
+            <div class="header-stat">
+                <span class="stat-label">PRIZE POOL</span>
+                <strong id="prizePool">0</strong>
+            </div>
+
+        </div>
+
+
+        <div class="header-actions">
+
+            <button
+                id="soundButton"
+                class="header-button"
+                type="button"
+                aria-label="Sound"
+            >
+                🔊
+            </button>
+
+            <button
+                id="menuButton"
+                class="header-button"
+                type="button"
+                aria-label="Menu"
+            >
+                ⋮
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================================================
+         MAIN APPLICATION
+         ========================================================= -->
+    <main id="mainContent">
+
+
+        <!-- =====================================================
+             SCREEN 1
+             SLOT SELECTION
+             ===================================================== -->
+        <section
+            id="slotSelectionScreen"
+            class="screen screen-selection active"
+        >
+
+            <!-- GRAND SLOTS -->
+            <section
+                id="grandSlotsSection"
+                class="game-panel grand-slots-section"
+            >
+
+                <div class="panel-header">
+
+                    <div class="panel-title-area">
+
+                        <h1>
+                            GRAND SLOTS
+                            <span>(1 - 500)</span>
+                        </h1>
+
+                        <div class="players-information">
+                            <span id="playersCount">0</span>
+                            <span>PLAYERS</span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="round-countdown">
+
+                        <span class="countdown-label">
+                            CLOSES IN
+                        </span>
+
+                        <strong id="closeCountdown">
+                            00:00
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!--
+                    The 500 slots are generated dynamically
+                    by app.js.
+                -->
+                <div
+                    id="slotsGrid"
+                    class="slots-grid"
+                    aria-label="Grand slots"
+                ></div>
+
+            </section>
+
+
+            <!-- MY CARTELAS -->
+            <section
+                id="myCartelasSection"
+                class="game-panel my-cartelas-section"
+            >
+
+                <div class="panel-header">
+
+                    <div class="panel-title-area">
+
+                        <h2>
+                            MY CARTELAS
+                            <span id="cartelaCount">(0/2)</span>
+                        </h2>
+
+                    </div>
+
+                    <div class="cartela-limit">
+                        MAX 2
+                    </div>
+
+                </div>
+
+
+                <!--
+                    Empty slots and selected Cartelas
+                    are inserted dynamically.
+                -->
+                <div
+                    id="cartelasContainer"
+                    class="cartelas-container"
+                ></div>
+
+            </section>
+
+
+            <!-- SELECTION CONTROLS -->
+            <section
+                id="selectionControls"
+                class="selection-controls"
+            >
+
+                <button
+                    id="autoAssignButton"
+                    class="game-button auto-assign-button"
+                    type="button"
+                >
+                    AUTO ASSIGN
+                </button>
+
+
+                <button
+                    id="clearButton"
+                    class="game-button clear-button"
+                    type="button"
+                >
+                    CLEAR
+                </button>
+
+            </section>
+
+        </section>
+
+
+        <!-- =====================================================
+             SCREEN 2
+             WAITING FOR ROUND
+             ===================================================== -->
+        <section
+            id="waitingScreen"
+            class="screen screen-waiting"
+        >
+
+            <div
+                id="waitingPanel"
+                class="game-panel waiting-panel"
+            >
+
+                <div class="waiting-icon">
+                    ♛
+                </div>
+
+                <h2>
+                    WAITING FOR ROUND
+                </h2>
+
+                <div class="waiting-round">
+                    ROUND
+                    <span id="waitingRoundNumber">
+                        #18766
+                    </span>
+                </div>
+
+                <div class="waiting-countdown">
+
+                    <span>
+                        STARTS IN
+                    </span>
+
+                    <strong id="startCountdown">
+                        00:00
+                    </strong>
+
+                </div>
+
+                <div
+                    id="waitingPlayers"
+                    class="waiting-players"
+                >
+                    0 PLAYERS
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             SCREEN 3
+             LIVE GAME
+             ===================================================== -->
+        <section
+            id="liveGameScreen"
+            class="screen screen-live-game"
+        >
+
+
+            <!-- =================================================
+                 DRAWN BALL AREA
+                 ================================================= -->
+            <section
+                id="drawnBallSection"
+                class="game-panel drawn-ball-section"
+            >
+
+                <div class="drawn-ball-area">
+
+                    <div
+                        id="currentBall"
+                        class="current-ball"
+                    >
+                        <span id="currentBallNumber">
+                            --
+                        </span>
+
+                        <span id="currentBallLetter">
+                            —
+                        </span>
+                    </div>
+
+
+                    <div class="drawn-ball-information">
+
+                        <div class="drawn-ball-title">
+                            DRAWN BALL
+                        </div>
+
+                        <div
+                            id="currentBallMeta"
+                            class="drawn-ball-meta"
+                        >
+                            Column — · #—
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!--
+                    Previous called balls.
+                    This is intentionally a compact horizontal
+                    area.
+                -->
+                <div
+                    id="recentBalls"
+                    class="recent-balls"
+                    aria-label="Recently called balls"
+                ></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 LIVE GAME CONTENT
+                 ================================================= -->
+            <div
+                id="liveGameLayout"
+                class="live-game-layout"
+            >
+
+
+                <!-- =============================================
+                     PLAYER CARTELAS
+                     ============================================= -->
+                <section
+                    id="liveCartelasSection"
+                    class="game-panel live-cartelas-section"
+                >
+
+                    <div class="panel-header">
+
+                        <div class="panel-title-area">
+
+                            <h2>
+                                YOUR CARTELAS
+                                <span id="liveCartelaCount">
+                                    (0)
+                                </span>
+                            </h2>
+
+                        </div>
+
+                        <div class="live-indicator">
+                            LIVE
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="liveCartelasContainer"
+                        class="live-cartelas-container"
+                    ></div>
+
+                </section>
+
+
+                <!-- =============================================
+                     75 BALL MATRIX
+                     ============================================= -->
+                <section
+                    id="matrixSection"
+                    class="game-panel matrix-section"
+                >
+
+                    <div class="panel-header">
+
+                        <div class="panel-title-area">
+
+                            <h2>
+                                75-BALL MATRIX
+                            </h2>
+
+                        </div>
+
+                        <div
+                            id="matrixStatus"
+                            class="live-indicator"
+                        >
+                            LIVE
+                        </div>
+
+                    </div>
+
+
+                    <!--
+                        B I N G O matrix is generated
+                        dynamically by app.js.
+                    -->
+                    <div
+                        id="ballMatrix"
+                        class="ball-matrix"
+                        aria-label="75 ball matrix"
+                    ></div>
+
+                </section>
+
+            </div>
+
+
+            <!-- =================================================
+                 LIVE GAME STATUS
+                 ================================================= -->
+            <section
+                id="liveGameStatus"
+                class="game-status"
+            >
+
+                <div class="status-item">
+                    <span>ROUND</span>
+                    <strong id="liveRoundNumber">
+                        #18766
+                    </strong>
+                </div>
+
+                <div class="status-item">
+                    <span>CALLED</span>
+                    <strong id="liveCalledCount">
+                        0/75
+                    </strong>
+                </div>
+
+                <div class="status-item">
+                    <span>PLAYERS</span>
+                    <strong id="livePlayersCount">
+                        0
+                    </strong>
+                </div>
+
+                <div class="status-item">
+                    <span>POOL</span>
+                    <strong id="livePrizePool">
+                        0
+                    </strong>
+                </div>
+
+            </section>
+
+        </section>
+
+
+        <!-- =====================================================
+             SCREEN 4
+             WINNER
+             ===================================================== -->
+        <section
+            id="winnerScreen"
+            class="screen screen-winner"
+        >
+
+            <div
+                id="winnerPanel"
+                class="winner-panel"
+            >
+
+                <div class="winner-icon">
+                    ♛
+                </div>
+
+
+                <h1>
+                    BEHERAWI CHAMPION
+                    <span>DECLARED</span>
+                </h1>
+
+
+                <div class="winner-subtitle">
+                    CONGRATULATIONS
+                </div>
+
+
+                <!-- WINNER INFORMATION -->
+                <div
+                    id="winnerInformation"
+                    class="winner-information"
+                >
+
+                    <div class="winner-row">
+                        <span>PLAYER</span>
+                        <strong id="winnerPlayer">
+                            —
+                        </strong>
+                    </div>
+
+                    <div class="winner-row">
+                        <span>CARTELA</span>
+                        <strong id="winnerCartela">
+                            —
+                        </strong>
+                    </div>
+
+                    <div class="winner-row">
+                        <span>PAYOUT</span>
+                        <strong id="winnerPayout">
+                            0
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <!-- WINNING CARTELA -->
+                <div
+                    id="winningCartelaContainer"
+                    class="winning-cartela-container"
+                ></div>
+
+
+                <!-- WINNER STATS -->
+                <div
+                    id="winnerStats"
+                    class="winner-stats"
+                >
+
+                    <div class="winner-stat">
+                        <strong id="winnerBallsCalled">
+                            0
+                        </strong>
+                        <span>BALLS CALLED</span>
+                    </div>
+
+                    <div class="winner-stat">
+                        <strong id="winnerLines">
+                            0
+                        </strong>
+                        <span>BINGO LINES</span>
+                    </div>
+
+                    <div class="winner-stat">
+                        <strong id="winnerDuration">
+                            0s
+                        </strong>
+                        <span>DURATION</span>
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="nextRoundButton"
+                    class="game-button next-round-button"
+                    type="button"
+                >
+                    NEXT ROUND
+                </button>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =========================================================
+         GLOBAL NOTIFICATION / TOAST
+         ========================================================= -->
+    <div
+        id="notification"
+        class="notification"
+        role="status"
+        aria-live="polite"
+    ></div>
+
+
+    <!-- =========================================================
+         LOADING OVERLAY
+         ========================================================= -->
+    <div
+        id="loadingOverlay"
+        class="loading-overlay"
+    >
+
+        <div class="loading-content">
+
+            <div class="loading-logo">
+                ♛
+            </div>
+
+            <div class="loading-title">
+                BEHERAWI BINGO
+            </div>
+
+            <div
+                id="loadingStatus"
+                class="loading-status"
+            >
+                CONNECTING...
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Main application logic -->
+<script src="app.js"></script>
+
+</body>
+</html>
