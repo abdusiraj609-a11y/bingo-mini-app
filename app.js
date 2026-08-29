@@ -165,6 +165,8 @@ function initializeApplication() {
     updateLoading("EVENTS...");
     bindEvents();
 
+    updateLoading("EVENTS DONE...");
+
     // Update lightweight interface data only.
     updateRound();
     updatePlayers();
@@ -173,6 +175,13 @@ function initializeApplication() {
     updateCartelaCounters();
 
     updateLoading("READY");
+
+    // Tell Telegram that the Mini App is ready.
+    if (window.Telegram &&
+        window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+    }
 
     // Hide the loading screen immediately after the first screen is ready.
     requestAnimationFrame(() => {
