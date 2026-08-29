@@ -1715,62 +1715,49 @@ function showNotification(message) {
 
 function bindEvents() {
 
+    console.log("EVENT DEBUG 1 - bindEvents START");
 
     if (elements.autoAssignButton) {
-
+        console.log("EVENT DEBUG 2 - autoAssign");
         elements.autoAssignButton.addEventListener(
             "click",
             autoAssignSlots
         );
-
     }
 
-
     if (elements.clearButton) {
-
+        console.log("EVENT DEBUG 3 - clear");
         elements.clearButton.addEventListener(
             "click",
             () => clearSlots(true)
         );
-
     }
 
-
     if (elements.soundButton) {
-
+        console.log("EVENT DEBUG 4 - sound");
         elements.soundButton.addEventListener(
             "click",
             toggleSound
         );
-
     }
 
-
     if (elements.nextRoundButton) {
-
+        console.log("EVENT DEBUG 5 - nextRound");
         elements.nextRoundButton.addEventListener(
             "click",
             nextRound
         );
-
     }
 
-
-    /*
-       Development helper:
-       Long press / double click on the round
-       can be used to test the live screen.
-    */
-
     if (elements.roundNumber) {
-
+        console.log("EVENT DEBUG 6 - round");
         elements.roundNumber.addEventListener(
             "dblclick",
             startRound
         );
-
     }
 
+    console.log("EVENT DEBUG 7 - bindEvents DONE");
 }
 
 
