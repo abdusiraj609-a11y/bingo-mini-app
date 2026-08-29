@@ -157,29 +157,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initializeApplication() {
 
-    updateLoading("INITIALIZING...");
+    updateLoading("STARTING...");
 
-    updateLoading("SLOTS...");
+    // Load only what is needed for the first screen.
     initializeSlots();
-
-    updateLoading("MATRIX...");
-    initializeMatrix();
-
-    updateLoading("CARTELA...");
-    initializeCartelas();
 
     updateLoading("EVENTS...");
     bindEvents();
 
-    updateLoading("INTERFACE...");
-    updateInterface();
+    // Update lightweight interface data only.
+    updateRound();
+    updatePlayers();
+    updateMoney();
+    updateSlots();
+    updateCartelaCounters();
 
-    updateLoading("DONE");
+    updateLoading("READY");
 
-    setTimeout(() => {
+    // Hide the loading screen immediately after the first screen is ready.
+    requestAnimationFrame(() => {
         hideLoading();
-    }, 500);
-
+    });
 }
 
 
@@ -1217,49 +1215,39 @@ function updateCartelaCounters() {
 
 function showScreen(screenName) {
 
-    state.screen =
-        screenName;
-
+    state.screen = screenName;
 
     const screens = {
-
-        selection:
-            elements.slotSelectionScreen,
-
-        waiting:
-            elements.waitingScreen,
-
-        live:
-            elements.liveGameScreen,
-
-        winner:
-            elements.winnerScreen
-
+        selection: elements.slotSelectionScreen,
+        waiting: elements.waitingScreen,
+        live: elements.liveGameScreen,
+        winner: elements.winnerScreen
     };
 
+    Object.entries(screens).forEach(([name, element]) => {
 
-    Object.entries(screens).forEach(
-        ([name, element]) => {
-
-            if (!element) {
-                return;
-            }
-
-            element.classList.toggle(
-                "active",
-                name === screenName
-            );
-
+        if (!element) {
+            return;
         }
-    );
 
+        element.classList.toggle(
+            "active",
+            name === screenName
+        );
+    });
 
+    // Heavy live-game elements are created only when needed.
     if (screenName === "live") {
 
+        if (elements.ballMatrix &&
+            elements.ballMatrix.children.length === 0) {
+
+            initializeMatrix();
+        }
+
         updateLiveCartelas();
-
+        updateMatrix();
     }
-
 }
 
 
