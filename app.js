@@ -159,20 +159,25 @@ function initializeApplication() {
 
     updateLoading("INITIALIZING...");
 
+    updateLoading("SLOTS...");
     initializeSlots();
 
+    updateLoading("MATRIX...");
     initializeMatrix();
 
+    updateLoading("CARTELA...");
     initializeCartelas();
 
+    updateLoading("EVENTS...");
     bindEvents();
 
+    updateLoading("INTERFACE...");
     updateInterface();
 
+    updateLoading("DONE");
+
     setTimeout(() => {
-
         hideLoading();
-
     }, 500);
 
 }
@@ -250,77 +255,38 @@ function initializeSlots() {
 function selectSlot(number) {
 
     if (state.takenSlots.has(number)) {
-
-        showNotification(
-            "This slot is already taken."
-        );
-
+        showNotification("This slot is already taken.");
         return;
-
     }
 
-
-    const index =
-        state.selectedSlots.indexOf(number);
-
+    const index = state.selectedSlots.indexOf(number);
 
     if (index !== -1) {
 
         state.selectedSlots.splice(index, 1);
 
-    } else {
-
-        if (state.selectedSlots.length >= 2) {
-
-            showNotification(
-                "Maximum 2 slots."
+        state.cartelas =
+            state.cartelas.filter(
+                cartela => cartela.slot !== number
             );
 
-            return;
+    } else {
 
+        if (state.selectedSlots.length >= state.maxCartelas) {
+            showNotification("Maximum 2 slots.");
+            return;
         }
 
         state.selectedSlots.push(number);
 
+        state.cartelas.push(
+            createCartela(number)
+        );
     }
-
 
     updateSlots();
-
-    updateCartelas();
-
+    renderCartelas();
 }
-
-
-function updateSlots() {
-
-    if (!elements.slotsGrid) {
-        return;
-    }
-
-    const slotElements =
-        elements.slotsGrid.querySelectorAll(".slot");
-
-
-    slotElements.forEach(slot => {
-
-        const number =
-            Number(slot.dataset.slot);
-
-        slot.classList.toggle(
-            "selected",
-            state.selectedSlots.includes(number)
-        );
-
-        slot.classList.toggle(
-            "taken",
-            state.takenSlots.has(number)
-        );
-
-    });
-
-}
-
 
 /* =========================================================
    AUTO ASSIGN
@@ -374,36 +340,41 @@ function autoAssignSlots() {
 function clearSlots(showMessage = true) {
 
     state.selectedSlots = [];
-
     state.cartelas = [];
 
     updateSlots();
-
-    updateCartelas();
+    renderCartelas();
 
     if (showMessage) {
-
-        showNotification(
-            "Selection cleared."
-        );
-
+        showNotification("Selection cleared.");
     }
-
 }
-
 
 /* =========================================================
    CARTELA SYSTEM
    ========================================================= */
 
 function initializeCartelas() {
-
-    updateCartelas();
-
+    renderCartelas();
 }
 
+/* =========================================================
+   CREATE A NEW CARTELA
+   ========================================================= */
 
-function updateCartelas() {
+function createCartela(slotNumber) {
+    return {
+        slot: slotNumber,
+        numbers: generateBingoCard(),
+        marked: new Set(["FREE"])
+    };
+}
+
+/* =========================================================
+   RENDER CARTELAS
+   ========================================================= */
+
+function renderCartelas() {
 
     if (!elements.cartelasContainer) {
         return;
@@ -411,83 +382,103 @@ function updateCartelas() {
 
     elements.cartelasContainer.innerHTML = "";
 
+    state.cartelas.forEach(cartela => {
+        elements.cartelasContainer.appendChild(
+            renderCartela(cartela, true)
+        );
+    });
 
-    state.selectedSlots.forEach(
-        (slotNumber, index) => {
+    while (state.cartelas.length < state.maxCartelas) {
 
-            const cartela =
-                createCartela(slotNumber);
-
-            state.cartelas[index] = cartela;
-
-            elements.cartelasContainer.appendChild(
-                renderCartela(
-                    cartela,
-                    true
-                )
-            );
-
-        }
-    );
-
-
-    while (
-        state.cartelas.length >
-        state.selectedSlots.length
-    ) {
-
-        state.cartelas.pop();
-
-    }
-
-
-    while (
-        state.selectedSlots.length <
-        state.maxCartelas
-    ) {
-
-        const empty =
-            document.createElement("div");
-
-        empty.className =
-            "cartela-box empty-cartela";
+        const empty = document.createElement("div");
+        empty.className = "cartela-box empty-cartela";
 
         empty.innerHTML = `
-            <div>
-                <span class="empty-plus">+</span>
-                EMPTY CARTELA
+            <div class="empty-cartela-content">
+                + EMPTY CARTELA
             </div>
         `;
 
-        elements.cartelasContainer.appendChild(
-            empty
-        );
-
+        elements.cartelasContainer.appendChild(empty);
     }
 
+    updateCartelaCounters();
+}
+
+/* =========================================================
+   RENDER SINGLE CARTELA
+   ========================================================= */
+
+function renderCartela(cartela, removable) {
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "cartela-box";
+
+    const top = document.createElement("div");
+    top.className = "cartela-top";
+
+    const label = document.createElement("span");
+    label.textContent = `SLOT ${cartela.slot}`;
+
+    top.appendChild(label);
+
+    if (removable) {
+
+        const remove = document.createElement("button");
+
+        remove.type = "button";
+        remove.className = "remove-cartela";
+        remove.textContent = "REMOVE";
+
+        remove.addEventListener("click", () => {
+
+            const index =
+                state.selectedSlots.indexOf(cartela.slot);
+
+            if (index !== -1) {
+                state.selectedSlots.splice(index, 1);
+            }
+
+            state.cartelas =
+                state.cartelas.filter(
+                    item => item.slot !== cartela.slot
+                );
+
+            updateSlots();
+            renderCartelas();
+        });
+
+        top.appendChild(remove);
+    }
+
+    wrapper.appendChild(top);
+    wrapper.appendChild(renderBingoCard(cartela));
+
+    return wrapper;
+}
+
+/* =========================================================
+   LIVE CARTELAS
+   ========================================================= */
+
+function updateLiveCartelas() {
+
+    if (!elements.liveCartelasContainer) {
+        return;
+    }
+
+    elements.liveCartelasContainer.innerHTML = "";
+
+    state.cartelas.forEach(cartela => {
+
+        elements.liveCartelasContainer.appendChild(
+            renderCartela(cartela, false)
+        );
+
+    });
 
     updateCartelaCounters();
-
 }
-
-
-function createCartela(slotNumber) {
-
-    const numbers =
-        generateBingoCard();
-
-    return {
-
-        slot: slotNumber,
-
-        numbers,
-
-        marked: new Set(["FREE"])
-
-    };
-
-}
-
 
 /* =========================================================
    BINGO CARD GENERATION
